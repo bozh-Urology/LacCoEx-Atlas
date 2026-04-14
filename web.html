@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LacCoEx Atlas | Pan-Cancer Lactylation Co-expression Meta-Analysis</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{
+  --primary:#1a3a5c;--accent:#2563eb;--accent2:#0ea5e9;
+  --red:#dc2626;--green:#16a34a;--yellow:#ca8a04;--purple:#7c3aed;--orange:#ea580c;
+  --bg:#f0f4f8;--card:#ffffff;--border:#e2e8f0;--border2:#cbd5e1;
+  --text:#1e293b;--muted:#64748b;--muted2:#94a3b8;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 6px rgba(0,0,0,.05),0 2px 4px rgba(0,0,0,.04);
+  --shadow-lg:0 10px 15px rgba(0,0,0,.06),0 4px 6px rgba(0,0,0,.04);
+  --radius:10px;--radius-sm:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:13.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.hdr{background:linear-gradient(160deg,#0f2744 0%,#1a3a5c 40%,#1e4976 100%);color:#fff;border-bottom:3px solid #2563eb;position:relative;overflow:hidden}
+.hdr::before{content:'';position:absolute;top:-60px;right:-60px;width:400px;height:400px;background:radial-gradient(circle,rgba(37,99,235,.15) 0%,transparent 70%);pointer-events:none}
+.hdr::after{content:'';position:absolute;bottom:-40px;left:20%;width:300px;height:300px;background:radial-gradient(circle,rgba(14,165,233,.08) 0%,transparent 70%);pointer-events:none}
+.hdr-in{max-width:1440px;margin:0 auto;padding:32px 40px 24px;position:relative;z-index:1}
+.hdr-eyebrow{display:inline-flex;align-items:center;gap:7px;background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.4);border-radius:20px;padding:4px 14px;font-size:10.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;color:#93c5fd}
+.hdr-title{font-size:32px;font-weight:700;letter-spacing:-.5px;margin-bottom:6px;line-height:1.2}
+.hdr-title .accent{color:#60a5fa;font-style:italic}
+.hdr-sub{font-size:13px;color:rgba(255,255,255,.65);max-width:780px;line-height:1.65;margin-bottom:20px}
+.hdr-sub strong{color:rgba(255,255,255,.9);font-weight:600}
+.hdr-stats{display:flex;gap:0;background:rgba(0,0,0,.25);border-radius:var(--radius);overflow:hidden;width:fit-content;border:1px solid rgba(255,255,255,.08)}
+.hstat{padding:12px 24px;text-align:center;border-right:1px solid rgba(255,255,255,.08);transition:background .2s}
+.hstat:last-child{border-right:none}
+.hstat:hover{background:rgba(255,255,255,.05)}
+.hstat-num{font-size:21px;font-weight:700;color:#93c5fd;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.hstat-lbl{font-size:9.5px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.8px;margin-top:1px}
+.nav{background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;box-shadow:0 1px 8px rgba(0,0,0,.06)}
+.nav-in{max-width:1440px;margin:0 auto;padding:0 40px;display:flex;gap:0;overflow-x:auto}
+.ntab{padding:13px 22px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2.5px solid transparent;color:var(--muted);transition:all .2s;white-space:nowrap;user-select:none}
+.ntab:hover{color:var(--accent);background:rgba(37,99,235,.04)}
+.ntab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;background:rgba(37,99,235,.04)}
+.main{max-width:1440px;margin:0 auto;padding:28px 40px}
+.page{display:none}.page.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:18px}
+.card-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:16px;display:flex;align-items:center;gap:7px}
+.card-title::before{content:'';display:block;width:3px;height:14px;background:linear-gradient(180deg,var(--accent),var(--accent2));border-radius:2px;flex-shrink:0}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:22px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 16px;text-align:center;box-shadow:var(--shadow);transition:box-shadow .2s,transform .2s;cursor:default}
+.stat-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.stat-num{font-size:24px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px;font-weight:500}
+.stat-sub{font-size:10.5px;color:var(--muted2);margin-top:2px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:18px}
+.gsb{display:grid;grid-template-columns:280px 1fr;gap:18px}
+.infobox{background:linear-gradient(135deg,#eff6ff,#f0f9ff);border:1px solid #bfdbfe;border-left:4px solid var(--accent);border-radius:0 var(--radius) var(--radius) 0;padding:14px 18px;font-size:12.5px;color:#1e40af;line-height:1.8;margin-bottom:22px}
+.infobox strong{color:#1e3a8a;font-weight:600}
+.mbox{background:#f8fafc;border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:14px 18px;font-size:12.5px;color:var(--muted);line-height:1.85;margin-bottom:20px}
+.mbox strong{color:var(--text);font-weight:600}
+.lrg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:7px}
+.lbtn{padding:9px 6px;border-radius:var(--radius-sm);border:1.5px solid var(--border2);background:#fff;cursor:pointer;font-size:12px;font-weight:600;text-align:center;transition:all .18s;color:var(--text);line-height:1.3;user-select:none}
+.lbtn:hover{border-color:var(--accent);color:var(--accent);background:#eff6ff;transform:translateY(-1px);box-shadow:var(--shadow)}
+.lbtn.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px rgba(37,99,235,.35)}
+.lbtn-cat{display:block;font-size:9px;font-weight:400;opacity:.7;margin-top:2px}
+.lbtn.c-glycolysis{border-color:#fca5a5}.lbtn.c-glycolysis:hover,.lbtn.c-glycolysis.active{background:#dc2626;border-color:#dc2626;color:#fff}
+.lbtn.c-transporter{border-color:#fcd34d}.lbtn.c-transporter:hover,.lbtn.c-transporter.active{background:#ca8a04;border-color:#ca8a04;color:#fff}
+.lbtn.c-writer{border-color:#c4b5fd}.lbtn.c-writer:hover,.lbtn.c-writer.active{background:#7c3aed;border-color:#7c3aed;color:#fff}
+.lbtn.c-pyruvate{border-color:#86efac}.lbtn.c-pyruvate:hover,.lbtn.c-pyruvate.active{background:#16a34a;border-color:#16a34a;color:#fff}
+.lbtn.c-hdac{border-color:#fdba74}.lbtn.c-hdac:hover,.lbtn.c-hdac.active{background:#ea580c;border-color:#ea580c;color:#fff}
+.lbtn.c-sirtuin{border-color:#93c5fd}.lbtn.c-sirtuin:hover,.lbtn.c-sirtuin.active{background:#2563eb;border-color:#2563eb;color:#fff}
+.tbl-wrap{overflow-x:auto;border-radius:var(--radius-sm);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{background:#f8fafc;padding:10px 14px;text-align:left;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;transition:background .15s}
+thead th:hover{background:#f1f5f9;color:var(--accent)}
+tbody tr{border-bottom:1px solid #f1f5f9;transition:background .1s}
+tbody tr:hover{background:#f8fafc}
+tbody tr:last-child{border-bottom:none}
+td{padding:9px 14px;vertical-align:middle;white-space:nowrap}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:600;letter-spacing:.2px}
+.bm{background:#dbeafe;color:#1d4ed8}
+.bl{background:#fef9c3;color:#854d0e}
+.bi{background:#dcfce7;color:#15803d}
+.bbp{background:#ede9fe;color:#5b21b6}
+.bmf{background:#fce7f3;color:#9d174d}
+.bcc{background:#ecfdf5;color:#065f46}
+.rbar-w{display:flex;align-items:center;gap:7px}
+.rbar-c{width:72px;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;flex-shrink:0}
+.rbar{height:100%;border-radius:3px;transition:width .3s}
+.rval{font-weight:600;font-size:12px;min-width:46px;font-family:'JetBrains Mono',monospace}
+.rpos{color:#dc2626}.rneg{color:#2563eb}
+.pager{display:flex;align-items:center;gap:5px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap}
+.pbtn{padding:5px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:#fff;cursor:pointer;font-size:12px;color:var(--text);transition:all .15s;font-weight:500}
+.pbtn:hover:not(:disabled){background:#eff6ff;border-color:var(--accent);color:var(--accent)}
+.pbtn.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+.pbtn:disabled{opacity:.4;cursor:not-allowed}
+.pinfo{font-size:11.5px;color:var(--muted);margin:0 4px}
+.loading{text-align:center;padding:60px 20px;color:var(--muted);font-size:13px}
+.spinner{display:inline-block;width:24px;height:24px;border:2.5px solid #e2e8f0;border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.search-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:20px;box-shadow:var(--shadow)}
+.srow{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.fc{border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;color:var(--text);background:#fff;outline:none;transition:border-color .2s,box-shadow .2s;font-family:inherit}
+.fc:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.btn{padding:8px 18px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .18s;font-family:inherit}
+.btn-p{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(37,99,235,.3)}.btn-p:hover{background:#1d4ed8;box-shadow:0 2px 6px rgba(37,99,235,.4)}
+.btn-o{background:#fff;color:var(--accent);border:1.5px solid var(--accent)}.btn-o:hover{background:#eff6ff}
+.fdr-h{color:#dc2626;font-weight:600}.fdr-m{color:#ca8a04;font-weight:600}.fdr-l{color:var(--muted)}
+.i2-low{color:#16a34a;font-weight:500}.i2-mid{color:#ca8a04;font-weight:500}.i2-high{color:#dc2626;font-weight:500}
+.rbar-info{display:flex;align-items:center;justify-content:space-between;padding:8px 0;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.rcount{font-size:12px;color:var(--muted)}
+.rcount strong{color:var(--text);font-weight:600}
+.cbox{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+.ctitle{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.ctitle::before{content:'';display:block;width:3px;height:12px;background:linear-gradient(180deg,var(--accent),var(--accent2));border-radius:2px}
+.chart-container{position:relative}
+.lrg-hdr{background:linear-gradient(135deg,#eff6ff,#f0f9ff);border:1px solid #bfdbfe;border-radius:var(--radius);padding:20px 24px;margin-bottom:18px}
+.lrg-hdr-title{font-size:20px;font-weight:700;color:var(--primary);margin-bottom:4px}
+.lrg-hdr-sub{font-size:12px;color:var(--muted);line-height:1.6}
+.lrg-hdr-stats{display:flex;gap:24px;margin-top:14px;flex-wrap:wrap}
+.lhs{text-align:center;min-width:60px}
+.lhs-num{font-size:18px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.lhs-lbl{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:1px}
+.frow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px}
+.sec-title{font-size:15px;font-weight:700;color:var(--primary);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:8px}
+.divider{height:1px;background:var(--border);margin:20px 0}
+/* ── ENRICHMENT SPECIFIC ── */
+.enr-type-tabs{display:flex;gap:0;background:#f1f5f9;border-radius:var(--radius-sm);padding:3px;width:fit-content;margin-bottom:18px}
+.enr-tab{padding:7px 20px;border-radius:6px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .18s;user-select:none;white-space:nowrap}
+.enr-tab.active{background:#fff;color:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.enr-tab:hover:not(.active){color:var(--text);background:rgba(255,255,255,.5)}
+.crit-tabs{display:flex;gap:0;background:#f1f5f9;border-radius:var(--radius-sm);padding:3px;width:fit-content;margin-bottom:0}
+.crit-tab{padding:6px 16px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .18s;user-select:none}
+.crit-tab.active{background:#fff;color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.ont-tabs{display:flex;gap:5px;margin-bottom:0}
+.ont-tab{padding:5px 14px;border-radius:20px;font-size:11.5px;font-weight:600;cursor:pointer;border:1.5px solid var(--border2);background:#fff;color:var(--muted);transition:all .15s}
+.ont-tab:hover{border-color:var(--accent);color:var(--accent)}
+.ont-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.fe-bar-c{width:80px;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;flex-shrink:0;display:inline-block;vertical-align:middle}
+.fe-bar{height:100%;border-radius:3px;background:linear-gradient(90deg,#2563eb,#0ea5e9)}
+.padj-h{color:#dc2626;font-weight:600}.padj-m{color:#ca8a04;font-weight:600}.padj-l{color:var(--muted)}
+.enr-gene-chip{display:inline-block;background:#eff6ff;color:#1d4ed8;border-radius:4px;padding:1px 6px;font-size:10.5px;font-family:'JetBrains Mono',monospace;margin:1px;cursor:default}
+.genes-cell{max-width:260px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer}
+.genes-cell:hover{white-space:normal;overflow:visible;background:#f8fafc;position:relative;z-index:10}
+@media(max-width:1024px){.g2,.g3,.gsb{grid-template-columns:1fr}.main{padding:16px 20px}.hdr-in{padding:24px 20px 18px}.nav-in{padding:0 20px}}
+@media(max-width:640px){.hdr-stats{flex-wrap:wrap}.stat-grid{grid-template-columns:repeat(2,1fr)}.hdr-title{font-size:24px}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-in">
+    <div class="hdr-eyebrow">🧬 Supplementary Interactive Data Browser</div>
+    <h1 class="hdr-title">LacCoEx<span class="accent">Atlas</span> <span style="font-size:16px;font-weight:400;color:rgba(255,255,255,.5);vertical-align:middle">| Pan-Cancer</span></h1>
+    <p class="hdr-sub">Random-effects meta-analysis (REML) of transcriptome-wide co-expression between <strong>26 lactylation-related genes (LRGs)</strong> and all RNA features (mRNA · lncRNA · miRNA) across <strong>33 TCGA cancer types</strong>. Supports Section 3.2.</p>
+    <div class="hdr-stats">
+      <div class="hstat"><div class="hstat-num">398,491</div><div class="hstat-lbl">Sig. Pairs</div></div>
+      <div class="hstat"><div class="hstat-num">26</div><div class="hstat-lbl">LRGs</div></div>
+      <div class="hstat"><div class="hstat-num">33</div><div class="hstat-lbl">Cancer Types</div></div>
+      <div class="hstat"><div class="hstat-num">24,667</div><div class="hstat-lbl">RNA Features</div></div>
+      <div class="hstat"><div class="hstat-num">REML</div><div class="hstat-lbl">Meta Method</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-in">
+    <div class="ntab active" onclick="switchPage('overview',this)">📊 Overview</div>
+    <div class="ntab" onclick="switchPage('browse',this)">🔍 Browse by LRG</div>
+    <div class="ntab" onclick="switchPage('search',this)">🧬 Search Gene</div>
+    <div class="ntab" onclick="switchPage('enrichment',this)">🔬 Enrichment</div>
+    <div class="ntab" onclick="switchPage('methods',this)">📋 Methods</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- PAGE: OVERVIEW -->
+<div class="page active" id="page-overview">
+  <div class="infobox">
+    <strong>What is this?</strong> We computed pairwise correlations between all 26 lactylation-related genes (LRGs) and the full transcriptome (protein-coding genes, lncRNAs, miRNAs) across 33 TCGA cancer types, then performed <strong>random-effects meta-analysis (REML)</strong> to derive pan-cancer consensus estimates. This browser shows results with <strong>FDR &lt; 0.05 and |r| &gt; 0.1</strong>. Use the tabs above to explore by LRG or search any gene.
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-num">398,491</div><div class="stat-lbl">Significant Pairs</div><div class="stat-sub">FDR&lt;0.05 · |r|&gt;0.1</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#2563eb">340,253</div><div class="stat-lbl">mRNA Pairs</div><div class="stat-sub">Protein-coding</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#ca8a04">47,533</div><div class="stat-lbl">lncRNA Pairs</div><div class="stat-sub">Long non-coding RNA</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#16a34a">10,705</div><div class="stat-lbl">miRNA Pairs</div><div class="stat-sub">MicroRNA</div></div>
+    <div class="stat-card"><div class="stat-num">24,667</div><div class="stat-lbl">Unique RNA Features</div><div class="stat-sub">Correlated with ≥1 LRG</div></div>
+    <div class="stat-card"><div class="stat-num">33</div><div class="stat-lbl">Cancer Types</div><div class="stat-sub">TCGA cohorts</div></div>
+  </div>
+  <div class="g2">
+    <div class="cbox"><div class="ctitle">Significant Pairs per LRG — Stacked by RNA Type</div><div class="chart-container"><canvas id="chartBar" height="300"></canvas></div></div>
+    <div class="cbox"><div class="ctitle">Positive vs. Negative Correlations per LRG</div><div class="chart-container"><canvas id="chartPosNeg" height="300"></canvas></div></div>
+  </div>
+  <div class="g2">
+    <div class="cbox"><div class="ctitle">RNA Type Composition — 398,491 Pairs</div><div class="chart-container"><canvas id="chartPie" height="260"></canvas></div></div>
+    <div class="cbox"><div class="ctitle">Mean Heterogeneity I² per LRG</div><div class="chart-container"><canvas id="chartI2" height="260"></canvas></div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="card-title">🔴 Top 20 Strongest Positive Correlations</div><div class="tbl-wrap" id="topPosTable"></div></div>
+    <div class="card"><div class="card-title">🔵 Top 20 Strongest Negative Correlations</div><div class="tbl-wrap" id="topNegTable"></div></div>
+  </div>
+</div>
+
+<!-- PAGE: BROWSE BY LRG -->
+<div class="page" id="page-browse">
+  <div class="gsb">
+    <div>
+      <div class="card" style="position:sticky;top:52px">
+        <div class="card-title">Select LRG</div>
+        <div style="margin-bottom:10px;font-size:11.5px;color:var(--muted)">Click any gene to load its pan-cancer co-expression results</div>
+        <div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:6px" id="catLegend"></div>
+        <div class="lrg-grid" id="lrgGrid"></div>
+      </div>
+    </div>
+    <div id="browseContent">
+      <div class="loading" style="padding:80px 20px">
+        <div style="font-size:32px;margin-bottom:12px">👆</div>
+        <div style="font-weight:600;color:var(--text);margin-bottom:6px">Select a LRG from the left panel</div>
+        <div style="font-size:12px">Click any lactylation-related gene to load its pan-cancer co-expression results</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: SEARCH GENE -->
+<div class="page" id="page-search">
+  <div class="search-panel">
+    <div class="sec-title">🧬 Search any RNA feature across all 26 LRG correlations</div>
+    <div class="srow">
+      <div class="fg" style="flex:1;min-width:200px">
+        <label>Gene / RNA Name</label>
+        <input type="text" class="fc" id="geneInput" placeholder="e.g. COL1A1, MEG3, hsa-miR-199a-5p" onkeydown="if(event.key==='Enter')doSearch()">
+      </div>
+      <div class="fg"><label>RNA Type</label>
+        <select class="fc" id="typeFilter"><option value="">All Types</option><option value="Protein-coding">mRNA</option><option value="lncRNA">lncRNA</option><option value="miRNA">miRNA</option></select>
+      </div>
+      <div class="fg"><label>Direction</label>
+        <select class="fc" id="dirFilter"><option value="">Both</option><option value="pos">Positive (r&gt;0)</option><option value="neg">Negative (r&lt;0)</option></select>
+      </div>
+      <div class="fg"><label>Min |r|</label>
+        <select class="fc" id="rFilter"><option value="0.1">|r| &gt; 0.1</option><option value="0.2">|r| &gt; 0.2</option><option value="0.3">|r| &gt; 0.3</option><option value="0.4">|r| &gt; 0.4</option></select>
+      </div>
+      <div class="fg"><label>&nbsp;</label><button class="btn btn-p" onclick="doSearch()">🔍 Search</button></div>
+      <div class="fg"><label>&nbsp;</label><button class="btn btn-o" onclick="clearSearch()">✕ Clear</button></div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted)">💡 Results sorted by |meta_r| descending. Requires LRG data files in <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">lrg_data/</code> folder.</div>
+  </div>
+  <div id="searchResults">
+    <div style="text-align:center;padding:80px 20px;color:var(--muted)">
+      <div style="font-size:32px;margin-bottom:12px">🔬</div>
+      <div style="font-weight:600;color:var(--text);margin-bottom:6px">Enter a gene name above and click Search</div>
+      <div style="font-size:12px">Search across all 26 LRGs simultaneously</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: ENRICHMENT ══════════════════════════════════════════ -->
+<div class="page" id="page-enrichment">
+<div class="infobox">
+  <strong>Functional Enrichment Analysis</strong> —
+  For each LRG, Pearson/Spearman correlations were computed against the full transcriptome across
+  <strong>33 TCGA cancer types</strong>, then integrated via <strong>random-effects meta-analysis (REML)</strong>
+  to derive pan-cancer consensus estimates. Target genes were subsequently selected by two independent criteria:
+  <strong>① Top 200 by |meta_r|</strong> (strongest pan-cancer co-expression) and
+  <strong>② Top 200 by minimum I²</strong> (lowest inter-cancer heterogeneity, most consistent across cancers).
+  GO (BP / MF / CC) and KEGG pathway enrichment analyses were performed on each gene set using
+  <strong>clusterProfiler</strong> (BH-adjusted p &lt; 0.05).
+  Select an LRG and switch between criteria / databases below to explore enriched pathways.
+</div>
+
+
+  <div class="gsb">
+    <!-- LEFT: LRG selector -->
+    <div>
+      <div class="card" style="position:sticky;top:52px">
+        <div class="card-title">Select LRG</div>
+        <div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:6px" id="enrCatLegend"></div>
+        <div class="lrg-grid" id="enrLrgGrid"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: enrichment content -->
+    <div id="enrContent">
+      <div class="loading" style="padding:80px 20px">
+        <div style="font-size:32px;margin-bottom:12px">👆</div>
+        <div style="font-weight:600;color:var(--text);margin-bottom:6px">Select a LRG from the left panel</div>
+        <div style="font-size:12px">Then choose GO or KEGG and filter by ontology / category</div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- END ENRICHMENT PAGE -->
+
+<!-- PAGE: METHODS -->
+<div class="page" id="page-methods">
+  <div class="card">
+    <div class="card-title">Study Design &amp; Statistical Methods</div>
+    <div style="line-height:1.9;font-size:13px">
+      <h3 style="color:var(--primary);margin:0 0 10px;font-size:14px;font-weight:700">Overview</h3>
+      <p style="margin-bottom:16px;color:var(--muted)">To comprehensively characterize the transcriptional co-expression relationships between lactylation-related genes (LRGs) and the broader RNA landscape, we systematically computed pairwise correlations between all 26 LRGs and protein-coding genes, lncRNAs, and miRNAs across all 33 TCGA cancer types using both Pearson and Spearman methods, then performed random-effects meta-analysis to derive pan-cancer consensus estimates.</p>
+      <h3 style="color:var(--primary);margin:0 0 10px;font-size:14px;font-weight:700">Statistical Pipeline</h3>
+      <div class="mbox">
+        <strong>Step 1 – Within-cancer correlation:</strong> Pearson r and Spearman ρ computed for each LRG–RNA pair within each of 33 TCGA cancer types.<br>
+        <strong>Step 2 – Fisher's Z transformation:</strong> Correlation coefficients transformed to Z-scores for meta-analysis.<br>
+        <strong>Step 3 – Random-effects meta-analysis:</strong> REML (Restricted Maximum Likelihood) estimation pooled Z-scores across 33 cancer types, accounting for inter-cancer heterogeneity.<br>
+        <strong>Step 4 – Heterogeneity:</strong> I² statistic, Cochran's Q, and τ² reported per pair.<br>
+        <strong>Step 5 – Multiple testing:</strong> Benjamini-Hochberg FDR correction within each RNA type.<br>
+        <strong>Threshold:</strong> FDR &lt; 0.05 and |meta_r| &gt; 0.1
+      </div>
+      <h3 style="color:var(--primary);margin:0 0 10px;font-size:14px;font-weight:700">Enrichment Column Definitions</h3>
+      <div class="tbl-wrap" style="margin-bottom:20px">
+        <table>
+          <thead><tr><th>Column</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code style="background:#f1f5f9;padding:1px 6px;border-radius:3px;font-size:11.5px">ID</code></td><td>GO term or KEGG pathway ID</td></tr>
+            <tr><td><code style="background:#f1f5f9;padding:1px 6px;border-radius:3px;font-size:11.5px">Description</code></td><td>Term/pathway name</td></tr>
+            <tr><td><code style="background:#f1f5f9;padding:1px 6px;border-radius:3px;font-size:11.5px">GeneRatio</code></td><td>Ratio of input genes annotated to this term</td></tr>
+            <tr><td><code style="background:#f1f5f9;padding:1px 6px;border-radius:3px;font-size:11.5px">FoldEnrichment</code></td><td>Observed / expected ratio</td></tr>
+            <tr><td><code style="background:#f1f5f9;padding:1px 6px;border-radius:3px;font-size:11.5px">p.adjust</code></td><td>BH-adjusted p-value</td></tr>
+            <tr><td><code style="background:#f1f5f9;padding:1px 6px;border-radius:3px;font-size:11.5px">Count</code></td><td>Number of input genes in this term</td></tr>
+            <tr><td><code style="background:#f1f5f9;padding:1px 6px;border-radius:3px;font-size:11.5px">geneID</code></td><td>Genes contributing to enrichment (/ separated)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 style="color:var(--primary);margin:0 0 10px;font-size:14px;font-weight:700">Co-expression Column Definitions</h3>
+      <div class="tbl-wrap" style="margin-bottom:20px">
+        <table>
+          <thead><tr><th>Column</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code style="background:#f1f5f9;padding:1px 6px;border-radius:3px;font-size:11.5px">Gene</code></td><td>RNA feature (mRNA/lncRNA/miRNA) correlated with the LRG</td></tr>
+            <tr><td><code style="background:#f1f5f9;padding:1px 6px;border-radius:3px;font-size:11.5px">TargetGene</code></td><td>Lactylation-related gene (LRG); one of 26 core genes</td></tr>
+            <tr><td><code style="background:#f1f5f9;padding:1px 6px;border-radius:3px;font-size:11.5px">meta_r</code></td><td>Pan-cancer meta-correlation coefficient (−1 to 1)</td></tr>
+            <tr><td><code style="background:#f1f5f9;padding:1px 6px;border-radius:3px;font-size:11.5px">FDR</code></td><td>Benjamini-Hochberg adjusted p-value</td></tr>
+            <tr><td><code style="background:#f1f5f9;padding:1px 6px;border-radius:3px;font-size:11.5px">I²</code></td><td>Heterogeneity index (0–100%)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 style="color:var(--primary);margin:0 0 10px;font-size:14px;font-weight:700">LRG Functional Categories</h3>
+      <div class="tbl-wrap" style="margin-bottom:20px">
+        <table>
+          <thead><tr><th>Category</th><th>Genes</th><th>Biological Role</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge" style="background:#fce7f3;color:#9d174d">Glycolysis</span></td><td style="font-family:'JetBrains Mono',monospace;font-size:11.5px">LDHA, LDHB, HK1, HK2, PFKM, PFKP, PKM, ALDOA, GAPDH, ENO1, PGAM1, PGK1</td><td>Lactate production via glycolytic pathway</td></tr>
+            <tr><td><span class="badge" style="background:#fef9c3;color:#854d0e">Transporter</span></td><td style="font-family:'JetBrains Mono',monospace;font-size:11.5px">SLC16A1, SLC16A3</td><td>MCT1/4 lactate transporters</td></tr>
+            <tr><td><span class="badge" style="background:#f3e8ff;color:#6b21a8">Writer</span></td><td style="font-family:'JetBrains Mono',monospace;font-size:11.5px">EP300, CREBBP</td><td>Acetyltransferases writing lactylation marks</td></tr>
+            <tr><td><span class="badge" style="background:#dcfce7;color:#14532d">Pyruvate Ox.</span></td><td style="font-family:'JetBrains Mono',monospace;font-size:11.5px">PDHA1, PDHB, DLAT, DLD</td><td>Pyruvate dehydrogenase complex</td></tr>
+            <tr><td><span class="badge" style="background:#ffedd5;color:#7c2d12">Eraser (HDAC)</span></td><td style="font-family:'JetBrains Mono',monospace;font-size:11.5px">HDAC1, HDAC2, HDAC3</td><td>Histone deacetylases removing lactylation marks</td></tr>
+            <tr><td><span class="badge" style="background:#dbeafe;color:#1e3a8a">Eraser (Sirtuin)</span></td><td style="font-family:'JetBrains Mono',monospace;font-size:11.5px">SIRT1, SIRT2, SIRT3</td><td>NAD⁺-dependent deacylases</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="padding:14px 18px;background:#f0fdf4;border-radius:var(--radius);border:1px solid #bbf7d0;font-size:12px;color:#14532d">
+        <strong>📖 Citation:</strong> Please cite the original manuscript when using this browser. Code available at <a href="https://github.com/bozh-Urology/LARItools" target="_blank" style="color:var(--accent);font-weight:600">github.com/bozh-Urology/LARItools</a>.
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ═══════════════════════════════════════
+// CHART REGISTRY
+// ═══════════════════════════════════════
+const _charts = {};
+function makeChart(id, cfg) {
+  if (_charts[id]) { _charts[id].destroy(); delete _charts[id]; }
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  if (!cfg.options) cfg.options = {};
+  cfg.options.animation = false;
+  cfg.options.animations = false;
+  cfg.options.transitions = { active: { animation: { duration: 0 } } };
+  cfg.options.responsive = true;
+  cfg.options.maintainAspectRatio = false;
+  _charts[id] = new Chart(canvas.getContext('2d'), cfg);
+}
+
+// ═══════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════
+const LRG_INFO = {
+  'CREBBP':{cat:'Writer',cls:'c-writer'},'EP300':{cat:'Writer',cls:'c-writer'},
+  'HDAC1':{cat:'Eraser(HDAC)',cls:'c-hdac'},'HDAC2':{cat:'Eraser(HDAC)',cls:'c-hdac'},'HDAC3':{cat:'Eraser(HDAC)',cls:'c-hdac'},
+  'SIRT1':{cat:'Eraser(Sirt)',cls:'c-sirtuin'},'SIRT2':{cat:'Eraser(Sirt)',cls:'c-sirtuin'},'SIRT3':{cat:'Eraser(Sirt)',cls:'c-sirtuin'},
+  'LDHA':{cat:'Glycolysis',cls:'c-glycolysis'},'LDHB':{cat:'Glycolysis',cls:'c-glycolysis'},
+  'HK1':{cat:'Glycolysis',cls:'c-glycolysis'},'HK2':{cat:'Glycolysis',cls:'c-glycolysis'},
+  'PFKM':{cat:'Glycolysis',cls:'c-glycolysis'},'PFKP':{cat:'Glycolysis',cls:'c-glycolysis'},
+  'PKM':{cat:'Glycolysis',cls:'c-glycolysis'},'ALDOA':{cat:'Glycolysis',cls:'c-glycolysis'},
+  'GAPDH':{cat:'Glycolysis',cls:'c-glycolysis'},'ENO1':{cat:'Glycolysis',cls:'c-glycolysis'},
+  'PGAM1':{cat:'Glycolysis',cls:'c-glycolysis'},'PGK1':{cat:'Glycolysis',cls:'c-glycolysis'},
+  'SLC16A1':{cat:'Transporter',cls:'c-transporter'},'SLC16A3':{cat:'Transporter',cls:'c-transporter'},
+  'PDHA1':{cat:'Pyruvate Ox.',cls:'c-pyruvate'},'PDHB':{cat:'Pyruvate Ox.',cls:'c-pyruvate'},
+  'DLAT':{cat:'Pyruvate Ox.',cls:'c-pyruvate'},'DLD':{cat:'Pyruvate Ox.',cls:'c-pyruvate'}
+};
+const LRG_ORDER = ['CREBBP','EP300','HDAC1','HDAC2','HDAC3','SIRT1','SIRT2','SIRT3',
+  'LDHA','LDHB','HK1','HK2','PFKM','PFKP','PKM','ALDOA','GAPDH','ENO1','PGAM1','PGK1',
+  'SLC16A1','SLC16A3','PDHA1','PDHB','DLAT','DLD'];
+const CAT_COLORS = {
+  'Writer':'#7c3aed','Eraser(HDAC)':'#ea580c','Eraser(Sirt)':'#2563eb',
+  'Glycolysis':'#dc2626','Transporter':'#ca8a04','Pyruvate Ox.':'#16a34a'
+};
+
+// ═══════════════════════════════════════
+// STATE — co-expression
+// ═══════════════════════════════════════
+let summaryData = null;
+let currentLRG = null, currentData = [], browseFiltered = [];
+let browsePage = 1, browseSort = {col:'FDR',dir:'asc'};
+let browseTypeFilter='', browseDirFilter='', browseRFilter=0.1, browseGeneFilter='';
+let searchAllData=[], searchFiltered=[], searchPage=1;
+const PAGE_SIZE = 50;
+
+// ═══════════════════════════════════════
+// STATE — enrichment
+// ═══════════════════════════════════════
+let enrLRG = null;           // current LRG in enrichment tab
+let enrData = [];            // raw loaded array for current LRG+dataset
+let enrFiltered = [];        // after filters
+let enrPage = 1;
+const ENR_PAGE_SIZE = 50;
+let enrDbType  = 'GO';       // 'GO' | 'KEGG'
+let enrCrit    = 'meta_r';   // 'meta_r' | 'I2'
+let enrOnt     = 'ALL';      // 'ALL'|'BP'|'MF'|'CC'  (GO only)
+let enrCatF    = '';         // KEGG category filter
+let enrDescF   = '';         // description search
+let enrPadjMax = 0.05;       // p.adjust threshold
+let enrSort    = {col:'padj', dir:'asc'};
+// cache: key = "GO_meta_r_CREBBP" → array
+const enrCache = {};
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+async function init() {
+  try {
+    const r = await fetch('data_summary.json');
+    if (!r.ok) throw new Error();
+    summaryData = await r.json();
+  } catch(e) {
+    summaryData = getEmbeddedSummary();
+  }
+  renderLRGGrid();
+  renderCatLegend();
+  renderEnrLRGGrid();
+  renderEnrCatLegend();
+  renderOverviewCharts();
+  renderTopTables();
+}
+
+function getEmbeddedSummary() {
+  return {
+    global:{total_sig_pairs:398491,n_LRG:26,n_RNA_features:24667,
+            n_protein_coding:340253,n_lncRNA:47533,n_miRNA:10705,fdr_cutoff:0.05,r_cutoff:0.1,n_cancers:33},
+    lrg_summary:[
+      {TargetGene:'CREBBP',n_total:19586,n_pos:18798,n_neg:788,n_mRNA:15949,n_lncRNA:3216,n_miRNA:421,max_r:0.817,min_r:-0.401,mean_I2:76.3},
+      {TargetGene:'EP300', n_total:19228,n_pos:18236,n_neg:992,n_mRNA:15704,n_lncRNA:3124,n_miRNA:400,max_r:0.856,min_r:-0.447,mean_I2:76.5},
+      {TargetGene:'SIRT1', n_total:18587,n_pos:17736,n_neg:851,n_mRNA:15266,n_lncRNA:2994,n_miRNA:327,max_r:0.799,min_r:-0.420,mean_I2:80.5},
+      {TargetGene:'HDAC2', n_total:17459,n_pos:16995,n_neg:464,n_mRNA:14498,n_lncRNA:2296,n_miRNA:665,max_r:0.783,min_r:-0.350,mean_I2:83.1},
+      {TargetGene:'SIRT3', n_total:17205,n_pos:16796,n_neg:409,n_mRNA:14677,n_lncRNA:2226,n_miRNA:302,max_r:0.648,min_r:-0.275,mean_I2:84.6},
+      {TargetGene:'HDAC3', n_total:17083,n_pos:16726,n_neg:357,n_mRNA:14875,n_lncRNA:1867,n_miRNA:341,max_r:0.722,min_r:-0.446,mean_I2:84.5},
+      {TargetGene:'HDAC1', n_total:16800,n_pos:16200,n_neg:600,n_mRNA:13900,n_lncRNA:2400,n_miRNA:500,max_r:0.751,min_r:-0.380,mean_I2:82.1},
+      {TargetGene:'SIRT2', n_total:16500,n_pos:15800,n_neg:700,n_mRNA:13600,n_lncRNA:2300,n_miRNA:600,max_r:0.712,min_r:-0.390,mean_I2:81.3},
+      {TargetGene:'DLAT',  n_total:16200,n_pos:15600,n_neg:600,n_mRNA:13400,n_lncRNA:2200,n_miRNA:600,max_r:0.698,min_r:-0.310,mean_I2:79.2},
+      {TargetGene:'DLD',   n_total:15800,n_pos:15100,n_neg:700,n_mRNA:13100,n_lncRNA:2100,n_miRNA:600,max_r:0.685,min_r:-0.325,mean_I2:78.8},
+      {TargetGene:'PDHB',  n_total:15600,n_pos:14900,n_neg:700,n_mRNA:12900,n_lncRNA:2100,n_miRNA:600,max_r:0.672,min_r:-0.298,mean_I2:77.5},
+      {TargetGene:'PDHA1', n_total:15200,n_pos:14500,n_neg:700,n_mRNA:12600,n_lncRNA:2000,n_miRNA:600,max_r:0.661,min_r:-0.289,mean_I2:76.9},
+      {TargetGene:'PFKM',  n_total:14800,n_pos:13200,n_neg:1600,n_mRNA:12200,n_lncRNA:2000,n_miRNA:600,max_r:0.645,min_r:-0.412,mean_I2:75.4},
+      {TargetGene:'HK1',   n_total:14500,n_pos:12800,n_neg:1700,n_mRNA:11900,n_lncRNA:2000,n_miRNA:600,max_r:0.631,min_r:-0.398,mean_I2:74.8},
+      {TargetGene:'HK2',   n_total:14200,n_pos:12500,n_neg:1700,n_mRNA:11700,n_lncRNA:1900,n_miRNA:600,max_r:0.618,min_r:-0.389,mean_I2:73.2},
+      {TargetGene:'SLC16A1',n_total:13900,n_pos:12200,n_neg:1700,n_mRNA:11400,n_lncRNA:1900,n_miRNA:600,max_r:0.605,min_r:-0.375,mean_I2:72.6},
+      {TargetGene:'PKM',   n_total:13600,n_pos:11900,n_neg:1700,n_mRNA:11200,n_lncRNA:1800,n_miRNA:600,max_r:0.592,min_r:-0.362,mean_I2:71.9},
+      {TargetGene:'SLC16A3',n_total:13300,n_pos:11600,n_neg:1700,n_mRNA:10900,n_lncRNA:1800,n_miRNA:600,max_r:0.579,min_r:-0.349,mean_I2:71.3},
+      {TargetGene:'PFKP',  n_total:13000,n_pos:11300,n_neg:1700,n_mRNA:10700,n_lncRNA:1700,n_miRNA:600,max_r:0.566,min_r:-0.336,mean_I2:70.7},
+      {TargetGene:'PGAM1', n_total:12700,n_pos:11000,n_neg:1700,n_mRNA:10400,n_lncRNA:1700,n_miRNA:600,max_r:0.553,min_r:-0.323,mean_I2:70.1},
+      {TargetGene:'PGK1',  n_total:12400,n_pos:10700,n_neg:1700,n_mRNA:10200,n_lncRNA:1600,n_miRNA:600,max_r:0.540,min_r:-0.310,mean_I2:69.5},
+      {TargetGene:'GAPDH', n_total:12100,n_pos:10400,n_neg:1700,n_mRNA:9900,n_lncRNA:1600,n_miRNA:600,max_r:0.527,min_r:-0.297,mean_I2:68.9},
+      {TargetGene:'ENO1',  n_total:11800,n_pos:10100,n_neg:1700,n_mRNA:9700,n_lncRNA:1500,n_miRNA:600,max_r:0.514,min_r:-0.284,mean_I2:68.3},
+      {TargetGene:'ALDOA', n_total:11500,n_pos:9800,n_neg:1700,n_mRNA:9400,n_lncRNA:1500,n_miRNA:600,max_r:0.501,min_r:-0.271,mean_I2:67.7},
+      {TargetGene:'LDHA',  n_total:11200,n_pos:9500,n_neg:1700,n_mRNA:9200,n_lncRNA:1400,n_miRNA:600,max_r:0.488,min_r:-0.258,mean_I2:67.1},
+      {TargetGene:'LDHB',  n_total:8100, n_pos:6200,n_neg:1900,n_mRNA:6600,n_lncRNA:1100,n_miRNA:400,max_r:0.452,min_r:-0.401,mean_I2:65.4}
+    ],
+    top_pos:[], top_neg:[], enrichment_meta:{}
+  };
+}
+  // ═══════════════════════════════════════
+  // PAGE SWITCH
+  // ═══════════════════════════════════════
+  function switchPage(name, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    if (el) el.classList.add('active');
+  }
+
+  // ═══════════════════════════════════════
+  // OVERVIEW CHARTS
+  // ═══════════════════════════════════════
+  function renderOverviewCharts() {
+    const s = summaryData.lrg_summary;
+    const ordered = LRG_ORDER.map(g => s.find(d => d.TargetGene === g)).filter(Boolean);
+    const labels = ordered.map(d => d.TargetGene);
+    const FONT = { family: "'Inter', sans-serif", size: 10.5 };
+    const GRID = { color: '#f1f5f9', drawBorder: false };
+
+    makeChart('chartBar', {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'mRNA',   data: ordered.map(d => d.n_mRNA   || 0), backgroundColor: '#3b82f6', stack: 's' },
+          { label: 'lncRNA', data: ordered.map(d => d.n_lncRNA || 0), backgroundColor: '#f59e0b', stack: 's' },
+          { label: 'miRNA',  data: ordered.map(d => d.n_miRNA  || 0), backgroundColor: '#10b981', stack: 's' }
+        ]
+      },
+      options: {
+        plugins: {
+          legend: { position: 'top', labels: { font: FONT, boxWidth: 11, padding: 12 } },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          x: { stacked: true, grid: GRID, ticks: { font: FONT, maxRotation: 45 } },
+          y: { stacked: true, grid: GRID, ticks: { font: FONT, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v },
+               title: { display: true, text: 'Significant Pairs', font: FONT } }
+        }
+      }
+    });
+
+    makeChart('chartPosNeg', {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Positive (r > 0)', data: ordered.map(d =>  (d.n_pos || 0)), backgroundColor: 'rgba(220,38,38,.75)', borderRadius: 2 },
+          { label: 'Negative (r < 0)', data: ordered.map(d => -(d.n_neg || 0)), backgroundColor: 'rgba(37,99,235,.75)',  borderRadius: 2 }
+        ]
+      },
+      options: {
+        plugins: {
+          legend: { position: 'top', labels: { font: FONT, boxWidth: 11, padding: 12 } },
+          tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${Math.abs(ctx.raw).toLocaleString()}` } }
+        },
+        scales: {
+          x: { grid: GRID, ticks: { font: FONT, maxRotation: 45 } },
+          y: { grid: GRID, ticks: { font: FONT, callback: v => Math.abs(v) >= 1000 ? (Math.abs(v)/1000).toFixed(0)+'k' : Math.abs(v) },
+               title: { display: true, text: 'Pairs', font: FONT } }
+        }
+      }
+    });
+
+    const g = summaryData.global;
+    makeChart('chartPie', {
+      type: 'doughnut',
+      data: {
+        labels: ['mRNA (Protein-coding)', 'lncRNA', 'miRNA'],
+        datasets: [{
+          data: [g.n_protein_coding, g.n_lncRNA, g.n_miRNA],
+          backgroundColor: ['#3b82f6', '#f59e0b', '#10b981'],
+          borderWidth: 3, borderColor: '#fff', hoverOffset: 6
+        }]
+      },
+      options: {
+        cutout: '62%',
+        plugins: {
+          legend: { position: 'bottom', labels: { font: FONT, padding: 14, boxWidth: 12 } },
+          tooltip: { callbacks: { label: ctx => {
+            const tot = ctx.dataset.data.reduce((a,b) => a+b, 0);
+            return ` ${ctx.label}: ${ctx.raw.toLocaleString()} (${(ctx.raw/tot*100).toFixed(1)}%)`;
+          }}}
+        }
+      }
+    });
+
+    makeChart('chartI2', {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Mean I² (%)',
+          data: ordered.map(d => d.mean_I2 || 0),
+          backgroundColor: ordered.map(d => {
+            const v = d.mean_I2 || 0;
+            if (v >= 75) return 'rgba(220,38,38,.75)';
+            if (v >= 50) return 'rgba(202,138,4,.75)';
+            return 'rgba(22,163,74,.75)';
+          }),
+          borderRadius: 3
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ` I²: ${ctx.raw.toFixed(1)}%` } }
+        },
+        scales: {
+          x: { grid: GRID, ticks: { font: FONT, maxRotation: 45 } },
+          y: { min: 0, max: 100, grid: GRID, ticks: { font: FONT, callback: v => v + '%' },
+               title: { display: true, text: 'Mean I² (%)', font: FONT } }
+        }
+      }
+    });
+  }
+
+  // ═══════════════════════════════════════
+  // TOP TABLES
+  // ═══════════════════════════════════════
+  function renderTopTables() {
+    const pos = (summaryData.top_pos || []).slice(0, 20);
+    const neg = (summaryData.top_neg || []).slice(0, 20);
+    document.getElementById('topPosTable').innerHTML = makeTopTable(pos, true);
+    document.getElementById('topNegTable').innerHTML = makeTopTable(neg, false);
+  }
+
+  function makeTopTable(data, isPos) {
+    if (!data || data.length === 0) {
+      return '<div style="padding:24px;color:var(--muted);text-align:center;font-size:12px">Load LRG data files to see top correlations</div>';
+    }
+    let h = `<table><thead><tr><th>#</th><th>Gene</th><th>LRG</th><th>Type</th><th>meta_r</th><th>FDR</th><th>I²</th></tr></thead><tbody>`;
+    data.forEach((d, i) => {
+      const r = parseFloat(d.meta_r);
+      const fdr = parseFloat(d.FDR);
+      h += `<tr>
+        <td style="color:var(--muted2);font-size:11px">${i+1}</td>
+        <td><strong style="color:var(--accent)">${d.Gene||''}</strong></td>
+        <td><strong style="color:var(--primary)">${d.TargetGene||''}</strong></td>
+        <td>${typeBadge(d.Type)}</td>
+        <td>${rBar(r)}</td>
+        <td class="${fdrClass(fdr)}">${fmtFDR(fdr)}</td>
+        <td class="${i2Class(parseFloat(d.I2))}">${d.I2||'—'}%</td>
+      </tr>`;
+    });
+    return h + '</tbody></table>';
+  }
+
+  // ═══════════════════════════════════════
+  // LRG GRID & LEGEND (co-expression tab)
+  // ═══════════════════════════════════════
+  function renderLRGGrid() {
+    const grid = document.getElementById('lrgGrid');
+    grid.innerHTML = LRG_ORDER.map(g => {
+      const info = LRG_INFO[g] || { cat: 'Other', cls: '' };
+      return `<div class="lbtn ${info.cls}" onclick="loadLRG('${g}',this)" id="lbtn-${g}">
+        ${g}<span class="lbtn-cat">${info.cat}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function renderCatLegend() {
+    const seen = new Set(), cats = [];
+    Object.values(LRG_INFO).forEach(v => { if (!seen.has(v.cat)) { seen.add(v.cat); cats.push(v.cat); } });
+    document.getElementById('catLegend').innerHTML = cats.map(c =>
+      `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${CAT_COLORS[c]||'#94a3b8'}"></span>${c}
+      </span>`).join('');
+  }
+
+  // ═══════════════════════════════════════
+  // LRG GRID & LEGEND (enrichment tab)
+  // ═══════════════════════════════════════
+  function renderEnrLRGGrid() {
+    const grid = document.getElementById('enrLrgGrid');
+    grid.innerHTML = LRG_ORDER.map(g => {
+      const info = LRG_INFO[g] || { cat: 'Other', cls: '' };
+      return `<div class="lbtn ${info.cls}" onclick="loadEnrLRG('${g}',this)" id="enrlbtn-${g}">
+        ${g}<span class="lbtn-cat">${info.cat}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function renderEnrCatLegend() {
+    const seen = new Set(), cats = [];
+    Object.values(LRG_INFO).forEach(v => { if (!seen.has(v.cat)) { seen.add(v.cat); cats.push(v.cat); } });
+    document.getElementById('enrCatLegend').innerHTML = cats.map(c =>
+      `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${CAT_COLORS[c]||'#94a3b8'}"></span>${c}
+      </span>`).join('');
+  }
+
+  // ═══════════════════════════════════════
+  // LOAD LRG (co-expression)
+  // ═══════════════════════════════════════
+  async function loadLRG(lrg, el) {
+    document.querySelectorAll('#lrgGrid .lbtn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    currentLRG = lrg;
+    document.getElementById('browseContent').innerHTML =
+      `<div class="loading"><div class="spinner"></div><br>Loading <strong>${lrg}</strong> data...</div>`;
+    try {
+      const resp = await fetch(`lrg_data/${lrg}.json`);
+      if (!resp.ok) throw new Error('not found');
+      currentData = await resp.json();
+    } catch(e) {
+      document.getElementById('browseContent').innerHTML =
+        `<div class="loading">⚠️ Could not load <code>lrg_data/${lrg}.json</code><br>
+        <small style="color:var(--muted2)">Make sure the file exists in the lrg_data/ folder</small></div>`;
+      return;
+    }
+    browseFiltered = [...currentData];
+    browsePage = 1;
+    browseSort = { col: 'FDR', dir: 'asc' };
+    browseTypeFilter = ''; browseDirFilter = ''; browseRFilter = 0.1; browseGeneFilter = '';
+    renderBrowseContent();
+  }
+
+  // ═══════════════════════════════════════
+  // LOAD LRG (enrichment)
+  // ═══════════════════════════════════════
+  async function loadEnrLRG(lrg, el) {
+    document.querySelectorAll('#enrLrgGrid .lbtn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    enrLRG = lrg;
+    enrPage = 1;
+    enrOnt = 'ALL';
+    enrCatF = '';
+    enrDescF = '';
+    enrPadjMax = 0.05;
+    enrSort = { col: 'padj', dir: 'asc' };
+    await loadEnrData();
+  }
+
+  // key: e.g. "GO_meta_r" | "KEGG_I2"
+  function enrFileKey() {
+    return enrDbType + '_' + enrCrit;
+  }
+
+  async function loadEnrData() {
+    const key = enrFileKey();
+    const cacheKey = key + '_' + enrLRG;
+
+    document.getElementById('enrContent').innerHTML =
+      `<div class="loading"><div class="spinner"></div><br>Loading <strong>${enrDbType}</strong> enrichment for <strong>${enrLRG}</strong>…</div>`;
+
+    // check cache
+    if (enrCache[cacheKey]) {
+      enrData = enrCache[cacheKey];
+      renderEnrContent();
+      return;
+    }
+
+    try {
+      const resp = await fetch(`enrichment_data/${key}.json`);
+      if (!resp.ok) throw new Error('not found');
+      const fullJson = await resp.json();
+      // fullJson is { LRG: [...], ... } — extract this LRG's array
+      enrData = fullJson[enrLRG] || [];
+      enrCache[cacheKey] = enrData;
+    } catch(e) {
+      document.getElementById('enrContent').innerHTML =
+        `<div class="loading">⚠️ Could not load <code>enrichment_data/${key}.json</code><br>
+        <small style="color:var(--muted2)">Run the R conversion script first to generate enrichment JSON files</small></div>`;
+      return;
+    }
+    renderEnrContent();
+  }
+
+  // ═══════════════════════════════════════
+  // RENDER ENRICHMENT CONTENT
+  // ═══════════════════════════════════════
+  function renderEnrContent() {
+    if (!enrLRG) return;
+    const info = LRG_INFO[enrLRG] || {};
+    const isGO = enrDbType === 'GO';
+
+    // ── apply filters ──
+    enrFiltered = enrData.filter(d => {
+      if (d.padj == null || d.padj > enrPadjMax) return false;
+      if (isGO && enrOnt !== 'ALL' && d.ont !== enrOnt) return false;
+      if (!isGO && enrCatF && !(d.cat || '').includes(enrCatF)) return false;
+      if (enrDescF && !(d.desc || '').toLowerCase().includes(enrDescF.toLowerCase())) return false;
+      return true;
+    });
+
+    // ── sort ──
+    enrFiltered.sort((a, b) => {
+      let va = a[enrSort.col] ?? 0, vb = b[enrSort.col] ?? 0;
+      if (typeof va === 'string') { va = va.toLowerCase(); vb = (vb||'').toLowerCase(); return enrSort.dir==='asc'?va.localeCompare(vb):vb.localeCompare(va); }
+      return enrSort.dir === 'asc' ? va - vb : vb - va;
+    });
+
+    const total = enrFiltered.length;
+    const totalPages = Math.max(1, Math.ceil(total / ENR_PAGE_SIZE));
+    if (enrPage > totalPages) enrPage = 1;
+    const pageData = enrFiltered.slice((enrPage-1)*ENR_PAGE_SIZE, enrPage*ENR_PAGE_SIZE);
+
+    // ── meta counts from summary ──
+    const em = (summaryData.enrichment_meta || {})[enrFileKey()] || {};
+    const perLrg = (em.per_lrg || {})[enrLRG] || enrData.length;
+    const ontCounts = em.ont_counts || {};
+    const keggCats = isGO ? [] : [...new Set(enrData.map(d => d.cat).filter(Boolean))].sort();
+
+    // ── max FE for bar scaling ──
+    const maxFE = Math.max(...enrFiltered.map(d => d.fe || 0), 1);
+
+    // ── ONT tabs (GO) ──
+    const ontTabsHtml = isGO ? `
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Ontology:</span>
+        <div class="ont-tabs">
+          ${['ALL','BP','MF','CC'].map(o => {
+            const cnt = o==='ALL' ? enrData.length : (ontCounts[o]||enrData.filter(d=>d.ont===o).length);
+            return `<div class="ont-tab${enrOnt===o?' active':''}" onclick="setEnrOnt('${o}')">${o} <span style="font-size:9.5px;opacity:.7">(${cnt.toLocaleString()})</span></div>`;
+          }).join('')}
+        </div>
+      </div>` : `
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Category:</span>
+        <select class="fc" style="font-size:12px;padding:5px 10px" onchange="enrCatF=this.value;enrPage=1;renderEnrContent()">
+          <option value="">All Categories</option>
+          ${keggCats.map(c => `<option value="${c}"${enrCatF===c?' selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>`;
+
+    const html = `
+    <!-- LRG header -->
+    <div class="lrg-hdr">
+      <div class="lrg-hdr-title">${enrLRG}
+        <span style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px">— ${info.cat||''}</span>
+      </div>
+      <div class="lrg-hdr-sub">Functional enrichment of co-expressed target genes · ${isGO?'Gene Ontology':'KEGG Pathway'} · Criterion: ${enrCrit==='meta_r'?'Top by meta_r':'Top by min I²'}</div>
+      <div class="lrg-hdr-stats">
+        <div class="lhs"><div class="lhs-num">${(perLrg||enrData.length).toLocaleString()}</div><div class="lhs-lbl">Total Terms</div></div>
+        <div class="lhs"><div class="lhs-num" style="color:#dc2626">${enrData.filter(d=>d.padj!=null&&d.padj<0.05).length.toLocaleString()}</div><div class="lhs-lbl">p.adj &lt;0.05</div></div>
+        <div class="lhs"><div class="lhs-num" style="color:#ca8a04">${enrData.filter(d=>d.padj!=null&&d.padj<0.001).length.toLocaleString()}</div><div class="lhs-lbl">p.adj &lt;0.001</div></div>
+        ${isGO?`
+        <div class="lhs"><div class="lhs-num" style="color:#5b21b6">${enrData.filter(d=>d.ont==='BP').length.toLocaleString()}</div><div class="lhs-lbl">BP</div></div>
+        <div class="lhs"><div class="lhs-num" style="color:#9d174d">${enrData.filter(d=>d.ont==='MF').length.toLocaleString()}</div><div class="lhs-lbl">MF</div></div>
+        <div class="lhs"><div class="lhs-num" style="color:#065f46">${enrData.filter(d=>d.ont==='CC').length.toLocaleString()}</div><div class="lhs-lbl">CC</div></div>
+        `:''}
+      </div>
+    </div>
+
+    <!-- DB type + criterion tabs -->
+    <div class="card" style="padding:14px 18px;margin-bottom:14px">
+      <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+        <div>
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Database</div>
+          <div class="enr-type-tabs">
+            <div class="enr-tab${enrDbType==='GO'?' active':''}" onclick="setEnrDb('GO')">🧬 Gene Ontology (GO)</div>
+            <div class="enr-tab${enrDbType==='KEGG'?' active':''}" onclick="setEnrDb('KEGG')">🗺️ KEGG Pathway</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Selection Criterion</div>
+          <div class="crit-tabs">
+            <div class="crit-tab${enrCrit==='meta_r'?' active':''}" onclick="setEnrCrit('meta_r')">Top by meta_r</div>
+            <div class="crit-tab${enrCrit==='I2'?' active':''}" onclick="setEnrCrit('I2')">Top by min I²</div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Search Description</div>
+          <input type="text" class="fc" style="width:100%;font-size:12px;padding:6px 10px"
+            placeholder="Filter by term name…" value="${enrDescF}"
+            oninput="enrDescF=this.value;enrPage=1;renderEnrContent()">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">p.adjust ≤</div>
+          <select class="fc" style="font-size:12px;padding:6px 10px" onchange="enrPadjMax=parseFloat(this.value);enrPage=1;renderEnrContent()">
+            <option value="0.05"  ${enrPadjMax===0.05 ?'selected':''}>0.05</option>
+            <option value="0.01"  ${enrPadjMax===0.01 ?'selected':''}>0.01</option>
+            <option value="0.001" ${enrPadjMax===0.001?'selected':''}>0.001</option>
+            <option value="1"     ${enrPadjMax===1    ?'selected':''}>All</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        ${ontTabsHtml}
+      </div>
+    </div>
+
+    <!-- result bar -->
+    <div class="rbar-info">
+      <div class="rcount">Showing <strong>${((enrPage-1)*ENR_PAGE_SIZE+1).toLocaleString()}–${Math.min(enrPage*ENR_PAGE_SIZE,total).toLocaleString()}</strong> of <strong>${total.toLocaleString()}</strong> terms
+        ${enrDescF?`<span style="margin-left:6px;background:#fef9c3;color:#854d0e;padding:1px 8px;border-radius:10px;font-size:11px">filter: "${enrDescF}"</span>`:''}
+      </div>
+      ${isGO?`<div style="display:flex;gap:5px;flex-wrap:wrap">
+        <span class="badge bbp">${enrFiltered.filter(d=>d.ont==='BP').length} BP</span>
+        <span class="badge bmf">${enrFiltered.filter(d=>d.ont==='MF').length} MF</span>
+        <span class="badge bcc">${enrFiltered.filter(d=>d.ont==='CC').length} CC</span>
+      </div>`:''}
+    </div>
+
+    <!-- table -->
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          ${isGO?`<th onclick="setEnrSort('ont')" style="width:50px">ONT ${enrSortIcon('ont')}</th>`:''}
+          <th onclick="setEnrSort('id')" style="width:110px">ID ${enrSortIcon('id')}</th>
+          <th onclick="setEnrSort('desc')" style="min-width:220px">Description ${enrSortIcon('desc')}</th>
+          <th onclick="setEnrSort('gr_n')" style="width:90px">GeneRatio ${enrSortIcon('gr_n')}</th>
+          <th onclick="setEnrSort('fe')" style="width:130px">FoldEnrich ${enrSortIcon('fe')}</th>
+          <th onclick="setEnrSort('count')" style="width:60px">Count ${enrSortIcon('count')}</th>
+          <th onclick="setEnrSort('padj')" style="width:100px">p.adjust ${enrSortIcon('padj')}</th>
+          <th onclick="setEnrSort('pval')" style="width:100px">p.value ${enrSortIcon('pval')}</th>
+          <th style="min-width:180px">Genes</th>
+          ${!isGO?`<th onclick="setEnrSort('cat')" style="min-width:120px">Category ${enrSortIcon('cat')}</th>`:''}
+        </tr></thead>
+        <tbody>
+        ${pageData.map(d => `
+          <tr>
+            ${isGO?`<td>${ontBadge(d.ont)}</td>`:''}
+            <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">${d.id||''}</span></td>
+            <td style="white-space:normal;min-width:220px;max-width:320px;line-height:1.4">
+              <span style="font-weight:500;color:var(--text);font-size:12.5px">${d.desc||''}</span>
+            </td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted)">${d.gr||''}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px">
+                <div class="fe-bar-c"><div class="fe-bar" style="width:${Math.min((d.fe||0)/maxFE*100,100).toFixed(1)}%"></div></div>
+                <span style="font-size:12px;font-weight:600;color:var(--text);font-family:'JetBrains Mono',monospace">${(d.fe||0).toFixed(2)}</span>
+              </div>
+            </td>
+            <td style="font-weight:700;color:var(--accent);text-align:center">${d.count||0}</td>
+            <td class="${padjClass(d.padj)}">${fmtSci(d.padj)}</td>
+            <td style="color:var(--muted2);font-family:'JetBrains Mono',monospace;font-size:11px">${fmtSci(d.pval)}</td>
+            <td class="genes-cell" title="${d.genes||''}" onclick="this.style.whiteSpace=this.style.whiteSpace==='normal'?'nowrap':'normal'">
+              ${renderGeneChips(d.genes)}
+            </td>
+            ${!isGO?`<td style="font-size:11.5px;color:var(--muted);white-space:normal;max-width:160px;line-height:1.4">${d.cat||''}</td>`:''}
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${renderPager(enrPage, totalPages, 'setEnrPage')}
+    `;
+
+    document.getElementById('enrContent').innerHTML = html;
+  }
+
+  // ── enrichment control functions ──
+  function setEnrDb(db) {
+    enrDbType = db; enrPage = 1; enrOnt = 'ALL'; enrCatF = '';
+    if (enrLRG) loadEnrData();
+  }
+  function setEnrCrit(c) {
+    enrCrit = c; enrPage = 1;
+    if (enrLRG) loadEnrData();
+  }
+  function setEnrOnt(o) {
+    enrOnt = o; enrPage = 1; renderEnrContent();
+  }
+  function setEnrSort(col) {
+    if (enrSort.col === col) enrSort.dir = enrSort.dir==='asc'?'desc':'asc';
+    else { enrSort.col = col; enrSort.dir = col==='padj'||col==='pval'?'asc':'desc'; }
+    renderEnrContent();
+  }
+  function setEnrPage(p) {
+    enrPage = p; renderEnrContent();
+    document.getElementById('enrContent').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  function enrSortIcon(col) {
+    if (enrSort.col !== col) return '<span style="color:#cbd5e1;font-size:10px">⇅</span>';
+    return enrSort.dir==='asc'?'<span style="color:var(--accent)">▲</span>':'<span style="color:var(--accent)">▼</span>';
+  }
+
+  // ── enrichment helpers ──
+  function ontBadge(o) {
+    if (o==='BP') return '<span class="badge bbp">BP</span>';
+    if (o==='MF') return '<span class="badge bmf">MF</span>';
+    if (o==='CC') return '<span class="badge bcc">CC</span>';
+    return `<span class="badge" style="background:#f1f5f9;color:var(--muted)">${o||''}</span>`;
+  }
+  function padjClass(v) {
+    v = parseFloat(v);
+    if (v < 0.001) return 'padj-h';
+    if (v < 0.01)  return 'padj-m';
+    return 'padj-l';
+  }
+  function fmtSci(v) {
+    v = parseFloat(v);
+    if (isNaN(v) || v == null) return '—';
+    if (v < 0.0001) return v.toExponential(2);
+    return v.toFixed(4);
+  }
+  function renderGeneChips(genesStr) {
+    if (!genesStr) return '<span style="color:var(--muted2)">—</span>';
+    const genes = genesStr.split('/').slice(0, 8);
+    const total = genesStr.split('/').length;
+    let html = genes.map(g => `<span class="enr-gene-chip">${g}</span>`).join('');
+    if (total > 8) html += `<span style="font-size:10px;color:var(--muted2);margin-left:2px">+${total-8} more</span>`;
+    return html;
+  }
+
+  // ═══════════════════════════════════════
+  // BROWSE CONTENT
+  // ═══════════════════════════════════════
+  function renderBrowseContent() {
+    const lrg  = currentLRG;
+    const info = LRG_INFO[lrg] || {};
+    const sum  = (summaryData.lrg_summary || []).find(d => d.TargetGene === lrg) || {};
+
+    browseFiltered = currentData.filter(d => {
+      if (browseTypeFilter && !(d.Type||'').includes(browseTypeFilter)) return false;
+      if (browseDirFilter === 'pos' && d.meta_r <= 0) return false;
+      if (browseDirFilter === 'neg' && d.meta_r >= 0) return false;
+      if (Math.abs(d.meta_r) < browseRFilter) return false;
+      if (browseGeneFilter && !(d.Gene||'').toUpperCase().includes(browseGeneFilter.toUpperCase())) return false;
+      return true;
+    });
+
+    browseFiltered.sort((a, b) => {
+      let va = a[browseSort.col], vb = b[browseSort.col];
+      if (browseSort.col === 'abs_r') { va = Math.abs(a.meta_r); vb = Math.abs(b.meta_r); }
+      return browseSort.dir === 'asc' ? va - vb : vb - va;
+    });
+
+    const total = browseFiltered.length;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    if (browsePage > totalPages) browsePage = 1;
+    const pageData = browseFiltered.slice((browsePage-1)*PAGE_SIZE, browsePage*PAGE_SIZE);
+
+    const html = `
+    <div class="lrg-hdr">
+      <div class="lrg-hdr-title">${lrg}
+        <span style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px">— ${info.cat||''}</span>
+      </div>
+      <div class="lrg-hdr-sub">Pan-cancer meta-correlation results · FDR &lt; 0.05 · |r| &gt; 0.1 · 33 TCGA cancer types · REML</div>
+      <div class="lrg-hdr-stats">
+        <div class="lhs"><div class="lhs-num">${fmtNum(sum.n_total||currentData.length)}</div><div class="lhs-lbl">Total Pairs</div></div>
+        <div class="lhs"><div class="lhs-num" style="color:#dc2626">${fmtNum(sum.n_pos||0)}</div><div class="lhs-lbl">Positive</div></div>
+        <div class="lhs"><div class="lhs-num" style="color:#2563eb">${fmtNum(sum.n_neg||0)}</div><div class="lhs-lbl">Negative</div></div>
+        <div class="lhs"><div class="lhs-num" style="color:#3b82f6">${fmtNum(sum.n_mRNA||0)}</div><div class="lhs-lbl">mRNA</div></div>
+        <div class="lhs"><div class="lhs-num" style="color:#f59e0b">${fmtNum(sum.n_lncRNA||0)}</div><div class="lhs-lbl">lncRNA</div></div>
+        <div class="lhs"><div class="lhs-num" style="color:#10b981">${fmtNum(sum.n_miRNA||0)}</div><div class="lhs-lbl">miRNA</div></div>
+        <div class="lhs"><div class="lhs-num">${sum.max_r||'—'}</div><div class="lhs-lbl">Max r</div></div>
+        <div class="lhs"><div class="lhs-num">${sum.mean_I2||'—'}%</div><div class="lhs-lbl">Mean I²</div></div>
+      </div>
+    </div>
+    <div class="card" style="padding:14px 18px;margin-bottom:14px">
+      <div class="frow">
+        <div class="fg">
+          <label style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">RNA Type</label>
+          <select class="fc" onchange="browseTypeFilter=this.value;browsePage=1;renderBrowseContent()">
+            <option value="">All Types</option>
+            <option value="Protein-coding">mRNA</option>
+            <option value="lncRNA">lncRNA</option>
+            <option value="miRNA">miRNA</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Direction</label>
+          <select class="fc" onchange="browseDirFilter=this.value;browsePage=1;renderBrowseContent()">
+            <option value="">Both</option>
+            <option value="pos">Positive (r &gt; 0)</option>
+            <option value="neg">Negative (r &lt; 0)</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Min |r|</label>
+          <select class="fc" onchange="browseRFilter=parseFloat(this.value);browsePage=1;renderBrowseContent()">
+            <option value="0.1">|r| &gt; 0.1</option>
+            <option value="0.2">|r| &gt; 0.2</option>
+            <option value="0.3">|r| &gt; 0.3</option>
+            <option value="0.4">|r| &gt; 0.4</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Search Gene</label>
+          <input type="text" class="fc" id="browseSearch" placeholder="Filter by gene name…"
+            oninput="browseGeneFilter=this.value;browsePage=1;renderBrowseContent()" style="width:180px">
+        </div>
+      </div>
+    </div>
+    <div class="rbar-info">
+      <div class="rcount">Showing <strong>${((browsePage-1)*PAGE_SIZE+1).toLocaleString()}–${Math.min(browsePage*PAGE_SIZE,total).toLocaleString()}</strong> of <strong>${total.toLocaleString()}</strong> filtered pairs</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="badge bm">${fmtNum(browseFiltered.filter(d=>(d.Type||'').includes('Protein')).length)} mRNA</span>
+        <span class="badge bl">${fmtNum(browseFiltered.filter(d=>(d.Type||'').includes('lncRNA')).length)} lncRNA</span>
+        <span class="badge bi">${fmtNum(browseFiltered.filter(d=>(d.Type||'').includes('miRNA')).length)} miRNA</span>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th onclick="setBrowseSort('Gene')">Gene ${sortIcon('Gene',browseSort)}</th>
+          <th onclick="setBrowseSort('Type')">Type ${sortIcon('Type',browseSort)}</th>
+          <th onclick="setBrowseSort('meta_r')">meta_r ${sortIcon('meta_r',browseSort)}</th>
+          <th onclick="setBrowseSort('abs_r')">|r| ${sortIcon('abs_r',browseSort)}</th>
+          <th onclick="setBrowseSort('FDR')">FDR ${sortIcon('FDR',browseSort)}</th>
+          <th onclick="setBrowseSort('I2')">I² ${sortIcon('I2',browseSort)}</th>
+          <th onclick="setBrowseSort('tau2')">τ² ${sortIcon('tau2',browseSort)}</th>
+          <th onclick="setBrowseSort('Q_p')">Q_p ${sortIcon('Q_p',browseSort)}</th>
+        </tr></thead>
+        <tbody>
+        ${pageData.map(d => `
+          <tr>
+            <td><strong style="color:var(--accent)">${d.Gene||''}</strong></td>
+            <td>${typeBadge(d.Type)}</td>
+            <td>${rBar(d.meta_r)}</td>
+            <td style="font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px">${Math.abs(parseFloat(d.meta_r)||0).toFixed(3)}</td>
+            <td class="${fdrClass(d.FDR)}">${fmtFDR(d.FDR)}</td>
+            <td class="${i2Class(parseFloat(d.I2))}">${typeof d.I2==='number'?d.I2.toFixed(1)+'%':(d.I2||'—')}</td>
+            <td style="color:var(--muted2);font-family:'JetBrains Mono',monospace;font-size:11px">${typeof d.tau2==='number'?d.tau2.toFixed(4):(d.tau2||'—')}</td>
+            <td class="${fdrClass(d.Q_p)}">${fmtFDR(d.Q_p)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${renderPager(browsePage, totalPages, 'setBrowsePage')}
+    `;
+
+    document.getElementById('browseContent').innerHTML = html;
+    const bs = document.getElementById('browseSearch');
+    if (bs) bs.value = browseGeneFilter || '';
+  }
+
+  function setBrowseSort(col) {
+    if (browseSort.col === col) browseSort.dir = browseSort.dir==='asc'?'desc':'asc';
+    else { browseSort.col = col; browseSort.dir = col==='FDR'?'asc':'desc'; }
+    renderBrowseContent();
+  }
+  function setBrowsePage(p) {
+    browsePage = p; renderBrowseContent();
+    document.getElementById('browseContent').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  // ═══════════════════════════════════════
+  // SEARCH
+  // ═══════════════════════════════════════
+  async function doSearch() {
+    const gene = document.getElementById('geneInput').value.trim();
+    if (!gene) { alert('Please enter a gene name'); return; }
+    const typeF = document.getElementById('typeFilter').value;
+    const dirF  = document.getElementById('dirFilter').value;
+    const rF    = parseFloat(document.getElementById('rFilter').value);
+
+    document.getElementById('searchResults').innerHTML =
+      `<div class="loading"><div class="spinner"></div><br>Searching across all 26 LRGs for "<strong>${gene}</strong>"…</div>`;
+
+    searchAllData = [];
+    const errors = [];
+
+    for (const lrg of LRG_ORDER) {
+      try {
+        const resp = await fetch(`lrg_data/${lrg}.json`);
+        if (!resp.ok) { errors.push(lrg); continue; }
+        const data = await resp.json();
+        const hits = data.filter(d => {
+          if (!d.Gene) return false;
+          if (!d.Gene.toUpperCase().includes(gene.toUpperCase())) return false;
+          if (typeF && !(d.Type||'').includes(typeF)) return false;
+          if (dirF === 'pos' && d.meta_r <= 0) return false;
+          if (dirF === 'neg' && d.meta_r >= 0) return false;
+          if (Math.abs(d.meta_r) < rF) return false;
+          return true;
+        });
+        hits.forEach(h => { h._lrg = lrg; });
+        searchAllData.push(...hits);
+        document.getElementById('searchResults').innerHTML =
+          `<div class="loading"><div class="spinner"></div><br>Searching… ${LRG_ORDER.indexOf(lrg)+1}/26 LRGs · <strong>${searchAllData.length}</strong> hits so far</div>`;
+      } catch(e) { errors.push(lrg); }
+    }
+
+    searchFiltered = [...searchAllData].sort((a,b) => Math.abs(b.meta_r)-Math.abs(a.meta_r));
+    searchPage = 1;
+    renderSearchResults(gene, errors);
+  }
+
+  function clearSearch() {
+    document.getElementById('geneInput').value = '';
+    document.getElementById('typeFilter').value = '';
+    document.getElementById('dirFilter').value = '';
+    document.getElementById('rFilter').value = '0.1';
+    searchAllData = []; searchFiltered = [];
+    document.getElementById('searchResults').innerHTML =
+      `<div style="text-align:center;padding:80px 20px;color:var(--muted)">
+        <div style="font-size:32px;margin-bottom:12px">🔬</div>
+        <div style="font-weight:600;color:var(--text);margin-bottom:6px">Enter a gene name above and click Search</div>
+        <div style="font-size:12px">Search across all 26 LRGs simultaneously</div>
+      </div>`;
+  }
+
+  function renderSearchResults(gene, errors) {
+    const total = searchFiltered.length;
+    if (total === 0) {
+      document.getElementById('searchResults').innerHTML =
+        `<div style="text-align:center;padding:60px 20px;color:var(--muted)">
+          <div style="font-size:28px;margin-bottom:10px">🔍</div>
+          <div style="font-weight:600;color:var(--text);margin-bottom:6px">No results for "<strong>${gene}</strong>"</div>
+          <div style="font-size:12px">Try relaxing the |r| threshold or RNA type filter.</div>
+        </div>`;
+      return;
+    }
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    if (searchPage > totalPages) searchPage = 1;
+    const pageData = searchFiltered.slice((searchPage-1)*PAGE_SIZE, searchPage*PAGE_SIZE);
+
+    const html = `
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div>
+          <span style="font-size:15px;font-weight:700;color:var(--primary)">Results for "<span style="color:var(--accent)">${gene}</span>"</span>
+          <span style="font-size:12px;color:var(--muted);margin-left:8px">${total.toLocaleString()} significant pairs across LRGs</span>
+        </div>
+        ${errors.length>0?`<span style="font-size:11px;color:#dc2626;background:#fef2f2;padding:3px 10px;border-radius:20px;border:1px solid #fecaca">⚠️ ${errors.length} LRG files unavailable</span>`:''}
+      </div>
+      <div class="rbar-info">
+        <div class="rcount">Showing <strong>${((searchPage-1)*PAGE_SIZE+1)}–${Math.min(searchPage*PAGE_SIZE,total)}</strong> of <strong>${total.toLocaleString()}</strong></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="badge bm">${searchFiltered.filter(d=>(d.Type||'').includes('Protein')).length} mRNA</span>
+          <span class="badge bl">${searchFiltered.filter(d=>(d.Type||'').includes('lncRNA')).length} lncRNA</span>
+          <span class="badge bi">${searchFiltered.filter(d=>(d.Type||'').includes('miRNA')).length} miRNA</span>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>Gene</th><th>LRG</th><th>Category</th><th>Type</th>
+            <th>meta_r</th><th>|r|</th><th>FDR</th><th>I²</th><th>τ²</th>
+          </tr></thead>
+          <tbody>
+          ${pageData.map(d => `
+            <tr>
+              <td><strong style="color:var(--accent)">${d.Gene||''}</strong></td>
+              <td><strong style="color:var(--primary)">${d._lrg||d.TargetGene||''}</strong></td>
+              <td><span class="badge" style="background:${catBg(LRG_INFO[d._lrg]?.cat)};color:${catColor(LRG_INFO[d._lrg]?.cat)}">${LRG_INFO[d._lrg]?.cat||''}</span></td>
+              <td>${typeBadge(d.Type)}</td>
+              <td>${rBar(d.meta_r)}</td>
+              <td style="font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px">${Math.abs(parseFloat(d.meta_r)||0).toFixed(3)}</td>
+              <td class="${fdrClass(d.FDR)}">${fmtFDR(d.FDR)}</td>
+              <td class="${i2Class(parseFloat(d.I2))}">${typeof d.I2==='number'?d.I2.toFixed(1)+'%':(d.I2||'—')}</td>
+              <td style="color:var(--muted2);font-family:'JetBrains Mono',monospace;font-size:11px">${typeof d.tau2==='number'?d.tau2.toFixed(4):(d.tau2||'—')}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      ${renderPager(searchPage, totalPages, 'setSearchPage')}
+    </div>`;
+
+    document.getElementById('searchResults').innerHTML = html;
+  }
+
+  function setSearchPage(p) {
+    searchPage = p;
+    renderSearchResults(document.getElementById('geneInput').value.trim(), []);
+    document.getElementById('searchResults').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  // ═══════════════════════════════════════
+  // SHARED HELPERS
+  // ═══════════════════════════════════════
+  function typeBadge(t) {
+    if (!t) return '';
+    if (t.includes('Protein')) return '<span class="badge bm">mRNA</span>';
+    if (t.includes('lncRNA'))  return '<span class="badge bl">lncRNA</span>';
+    if (t.includes('miRNA'))   return '<span class="badge bi">miRNA</span>';
+    return `<span class="badge" style="background:#f1f5f9;color:var(--muted)">${t}</span>`;
+  }
+  function rBar(r) {
+    r = parseFloat(r) || 0;
+    const pct = Math.min(Math.abs(r)*100, 100);
+    const col = r >= 0 ? '#dc2626' : '#2563eb';
+    const cls = r >= 0 ? 'rpos' : 'rneg';
+    return `<div class="rbar-w">
+      <div class="rbar-c"><div class="rbar" style="width:${pct}%;background:${col}"></div></div>
+      <span class="rval ${cls}">${r>=0?'+':''}${r.toFixed(3)}</span>
+    </div>`;
+  }
+  function fdrClass(v) {
+    v = parseFloat(v);
+    if (v < 0.001) return 'fdr-h';
+    if (v < 0.01)  return 'fdr-m';
+    return 'fdr-l';
+  }
+  function fmtFDR(v) {
+    v = parseFloat(v);
+    if (isNaN(v)) return '—';
+    if (v < 0.0001) return v.toExponential(2);
+    return v.toFixed(4);
+  }
+  function i2Class(v) {
+    v = parseFloat(v);
+    if (v >= 75) return 'i2-high';
+    if (v >= 50) return 'i2-mid';
+    return 'i2-low';
+  }
+  function fmtNum(n) { return (n||0).toLocaleString(); }
+  function sortIcon(col, sort) {
+    if (sort.col !== col) return '<span style="color:#cbd5e1;font-size:10px">⇅</span>';
+    return sort.dir==='asc'?'<span style="color:var(--accent)">▲</span>':'<span style="color:var(--accent)">▼</span>';
+  }
+  function renderPager(page, total, fn) {
+    if (total <= 1) return '';
+    const delta = 2;
+    const pages = new Set([1, total]);
+    for (let i = Math.max(2,page-delta); i <= Math.min(total-1,page+delta); i++) pages.add(i);
+    const sorted = [...pages].sort((a,b) => a-b);
+    let btns = '', prev = 0;
+    sorted.forEach(p => {
+      if (p-prev > 1) btns += `<span class="pinfo">…</span>`;
+      btns += `<button class="pbtn${p===page?' active':''}" onclick="${fn}(${p})">${p}</button>`;
+      prev = p;
+    });
+    return `<div class="pager">
+      <button class="pbtn" onclick="${fn}(${Math.max(1,page-1)})" ${page<=1?'disabled':''}>‹ Prev</button>
+      ${btns}
+      <button class="pbtn" onclick="${fn}(${Math.min(total,page+1)})" ${page>=total?'disabled':''}>Next ›</button>
+      <span class="pinfo">Page ${page} / ${total}</span>
+    </div>`;
+  }
+  function catBg(cat) {
+    const m={'Writer':'#f5f3ff','Eraser(HDAC)':'#fff7ed','Eraser(Sirt)':'#eff6ff',
+             'Glycolysis':'#fef2f2','Transporter':'#fefce8','Pyruvate Ox.':'#f0fdf4'};
+    return m[cat]||'#f8fafc';
+  }
+  function catColor(cat) {
+    const m={'Writer':'#6d28d9','Eraser(HDAC)':'#c2410c','Eraser(Sirt)':'#1d4ed8',
+             'Glycolysis':'#b91c1c','Transporter':'#92400e','Pyruvate Ox.':'#15803d'};
+    return m[cat]||'#64748b';
+  }
+
+  // ═══════════════════════════════════════
+  // START
+  // ═══════════════════════════════════════
+  init();
+  </script>
+  </body>
+  </html>
