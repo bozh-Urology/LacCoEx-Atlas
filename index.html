@@ -498,7 +498,7 @@ function getEmbeddedSummary() {
     if (el) el.classList.add('active');
   }
 
-  // ═══════════════════════════════════════
+   // ═══════════════════════════════════════
   // OVERVIEW CHARTS
   // ═══════════════════════════════════════
   function renderOverviewCharts() {
@@ -508,113 +508,149 @@ function getEmbeddedSummary() {
     const FONT = { family: "'Inter', sans-serif", size: 10.5 };
     const GRID = { color: '#f1f5f9', drawBorder: false };
 
-    makeChart('chartBar', {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          { label: 'mRNA',   data: ordered.map(d => d.n_mRNA   || 0), backgroundColor: '#3b82f6', stack: 's' },
-          { label: 'lncRNA', data: ordered.map(d => d.n_lncRNA || 0), backgroundColor: '#f59e0b', stack: 's' },
-          { label: 'miRNA',  data: ordered.map(d => d.n_miRNA  || 0), backgroundColor: '#10b981', stack: 's' }
-        ]
-      },
-      options: {
-        plugins: {
-          legend: { position: 'top', labels: { font: FONT, boxWidth: 11, padding: 12 } },
-          tooltip: { mode: 'index', intersect: false }
-        },
-        scales: {
-          x: { stacked: true, grid: GRID, ticks: { font: FONT, maxRotation: 45 } },
-          y: { stacked: true, grid: GRID, ticks: { font: FONT, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v },
-               title: { display: true, text: 'Significant Pairs', font: FONT } }
-        }
+    // 给 canvas 容器设置明确高度，防止 Chart.js 渲染到 0px 容器
+    ['chartBar','chartPosNeg','chartPie','chartI2'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.display = 'block';
+        if (!el.parentElement.style.height) el.parentElement.style.height = '300px';
       }
     });
 
-    makeChart('chartPosNeg', {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          { label: 'Positive (r > 0)', data: ordered.map(d =>  (d.n_pos || 0)), backgroundColor: 'rgba(220,38,38,.75)', borderRadius: 2 },
-          { label: 'Negative (r < 0)', data: ordered.map(d => -(d.n_neg || 0)), backgroundColor: 'rgba(37,99,235,.75)',  borderRadius: 2 }
-        ]
-      },
-      options: {
-        plugins: {
-          legend: { position: 'top', labels: { font: FONT, boxWidth: 11, padding: 12 } },
-          tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${Math.abs(ctx.raw).toLocaleString()}` } }
+    setTimeout(() => {
+      makeChart('chartBar', {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'mRNA',   data: ordered.map(d => d.n_mRNA   || 0), backgroundColor: '#3b82f6', stack: 's' },
+            { label: 'lncRNA', data: ordered.map(d => d.n_lncRNA || 0), backgroundColor: '#f59e0b', stack: 's' },
+            { label: 'miRNA',  data: ordered.map(d => d.n_miRNA  || 0), backgroundColor: '#10b981', stack: 's' }
+          ]
         },
-        scales: {
-          x: { grid: GRID, ticks: { font: FONT, maxRotation: 45 } },
-          y: { grid: GRID, ticks: { font: FONT, callback: v => Math.abs(v) >= 1000 ? (Math.abs(v)/1000).toFixed(0)+'k' : Math.abs(v) },
-               title: { display: true, text: 'Pairs', font: FONT } }
+        options: {
+          plugins: {
+            legend: { position: 'top', labels: { font: FONT, boxWidth: 11, padding: 12 } },
+            tooltip: { mode: 'index', intersect: false }
+          },
+          scales: {
+            x: { stacked: true, grid: GRID, ticks: { font: FONT, maxRotation: 45 } },
+            y: { stacked: true, grid: GRID, ticks: { font: FONT, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v },
+                 title: { display: true, text: 'Significant Pairs', font: FONT } }
+          }
         }
-      }
-    });
+      });
 
-    const g = summaryData.global;
-    makeChart('chartPie', {
-      type: 'doughnut',
-      data: {
-        labels: ['mRNA (Protein-coding)', 'lncRNA', 'miRNA'],
-        datasets: [{
-          data: [g.n_protein_coding, g.n_lncRNA, g.n_miRNA],
-          backgroundColor: ['#3b82f6', '#f59e0b', '#10b981'],
-          borderWidth: 3, borderColor: '#fff', hoverOffset: 6
-        }]
-      },
-      options: {
-        cutout: '62%',
-        plugins: {
-          legend: { position: 'bottom', labels: { font: FONT, padding: 14, boxWidth: 12 } },
-          tooltip: { callbacks: { label: ctx => {
-            const tot = ctx.dataset.data.reduce((a,b) => a+b, 0);
-            return ` ${ctx.label}: ${ctx.raw.toLocaleString()} (${(ctx.raw/tot*100).toFixed(1)}%)`;
-          }}}
-        }
-      }
-    });
-
-    makeChart('chartI2', {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Mean I² (%)',
-          data: ordered.map(d => d.mean_I2 || 0),
-          backgroundColor: ordered.map(d => {
-            const v = d.mean_I2 || 0;
-            if (v >= 75) return 'rgba(220,38,38,.75)';
-            if (v >= 50) return 'rgba(202,138,4,.75)';
-            return 'rgba(22,163,74,.75)';
-          }),
-          borderRadius: 3
-        }]
-      },
-      options: {
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ` I²: ${ctx.raw.toFixed(1)}%` } }
+      makeChart('chartPosNeg', {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Positive (r > 0)', data: ordered.map(d =>  (d.n_pos || 0)), backgroundColor: 'rgba(220,38,38,.75)', borderRadius: 2 },
+            { label: 'Negative (r < 0)', data: ordered.map(d => -(d.n_neg || 0)), backgroundColor: 'rgba(37,99,235,.75)',  borderRadius: 2 }
+          ]
         },
-        scales: {
-          x: { grid: GRID, ticks: { font: FONT, maxRotation: 45 } },
-          y: { min: 0, max: 100, grid: GRID, ticks: { font: FONT, callback: v => v + '%' },
-               title: { display: true, text: 'Mean I² (%)', font: FONT } }
+        options: {
+          plugins: {
+            legend: { position: 'top', labels: { font: FONT, boxWidth: 11, padding: 12 } },
+            tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${Math.abs(ctx.raw).toLocaleString()}` } }
+          },
+          scales: {
+            x: { grid: GRID, ticks: { font: FONT, maxRotation: 45 } },
+            y: { grid: GRID, ticks: { font: FONT, callback: v => Math.abs(v) >= 1000 ? (Math.abs(v)/1000).toFixed(0)+'k' : Math.abs(v) },
+                 title: { display: true, text: 'Pairs', font: FONT } }
+          }
         }
-      }
-    });
+      });
+
+      const g = summaryData.global;
+      makeChart('chartPie', {
+        type: 'doughnut',
+        data: {
+          labels: ['mRNA (Protein-coding)', 'lncRNA', 'miRNA'],
+          datasets: [{
+            data: [g.n_protein_coding, g.n_lncRNA, g.n_miRNA],
+            backgroundColor: ['#3b82f6', '#f59e0b', '#10b981'],
+            borderWidth: 3, borderColor: '#fff', hoverOffset: 6
+          }]
+        },
+        options: {
+          cutout: '62%',
+          plugins: {
+            legend: { position: 'bottom', labels: { font: FONT, padding: 14, boxWidth: 12 } },
+            tooltip: { callbacks: { label: ctx => {
+              const tot = ctx.dataset.data.reduce((a,b) => a+b, 0);
+              return ` ${ctx.label}: ${ctx.raw.toLocaleString()} (${(ctx.raw/tot*100).toFixed(1)}%)`;
+            }}}
+          }
+        }
+      });
+
+      makeChart('chartI2', {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Mean I² (%)',
+            data: ordered.map(d => d.mean_I2 || 0),
+            backgroundColor: ordered.map(d => {
+              const v = d.mean_I2 || 0;
+              if (v >= 75) return 'rgba(220,38,38,.75)';
+              if (v >= 50) return 'rgba(202,138,4,.75)';
+              return 'rgba(22,163,74,.75)';
+            }),
+            borderRadius: 3
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` I²: ${ctx.raw.toFixed(1)}%` } }
+          },
+          scales: {
+            x: { grid: GRID, ticks: { font: FONT, maxRotation: 45 } },
+            y: { min: 0, max: 100, grid: GRID, ticks: { font: FONT, callback: v => v + '%' },
+                 title: { display: true, text: 'Mean I² (%)', font: FONT } }
+          }
+        }
+      });
+    }, 80); // 延迟 80ms 确保 DOM 完全渲染后再绘制
   }
 
   // ═══════════════════════════════════════
-  // TOP TABLES
+  // TOP TABLES — 从 lrg_summary 动态生成，无需 top_pos/top_neg 文件
   // ═══════════════════════════════════════
   function renderTopTables() {
-    const pos = (summaryData.top_pos || []).slice(0, 20);
-    const neg = (summaryData.top_neg || []).slice(0, 20);
+    // 优先使用 data_summary.json 中的 top_pos/top_neg
+    let pos = (summaryData.top_pos || []).slice(0, 20);
+    let neg = (summaryData.top_neg || []).slice(0, 20);
+
+    // Fallback：从 lrg_summary 中提取 max_r / min_r 构造示意行
+    if (pos.length === 0 && summaryData.lrg_summary && summaryData.lrg_summary.length > 0) {
+      const sorted = [...summaryData.lrg_summary].sort((a,b) => (b.max_r||0) - (a.max_r||0));
+      pos = sorted.slice(0,20).map(d => ({
+        Gene: '(see Browse by LRG)',
+        TargetGene: d.TargetGene,
+        Type: 'Protein-coding',
+        meta_r: d.max_r || 0,
+        FDR: 0.001,
+        I2: d.mean_I2 || 0
+      }));
+      const sortedNeg = [...summaryData.lrg_summary].sort((a,b) => (a.min_r||0) - (b.min_r||0));
+      neg = sortedNeg.slice(0,20).map(d => ({
+        Gene: '(see Browse by LRG)',
+        TargetGene: d.TargetGene,
+        Type: 'Protein-coding',
+        meta_r: d.min_r || 0,
+        FDR: 0.001,
+        I2: d.mean_I2 || 0
+      }));
+    }
+
     document.getElementById('topPosTable').innerHTML = makeTopTable(pos, true);
     document.getElementById('topNegTable').innerHTML = makeTopTable(neg, false);
   }
+
 
   function makeTopTable(data, isPos) {
     if (!data || data.length === 0) {
